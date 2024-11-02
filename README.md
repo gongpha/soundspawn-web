@@ -6,24 +6,31 @@
 python -m venv venv
 ```
 
-2. เข้าสู่ Virtual ENV
+2. ไปที่ `venv\Scripts\activate.bat` เพิ่มบรรทัดนี้ท้ายไฟล์
+```
+set POSTGRES_PASSWORD=<รหัส postgres เครื่องตัวเอง>
+set POSTGRES_HOST=localhost
+```
+
+
+3. เข้าสู่ Virtual ENV
 ```
 call "venv\Scripts\activate.bat"
 ```
 
-3. ติดตั้ง dependencies
+4. ติดตั้ง dependencies
 ```
 pip install -r requirements.txt
 ```
 
-4. สร้าง Database ชื่อว่า `soundspawn` ใน pgAdmin
-5. migrate ข้อมูล
+5. สร้าง Database ชื่อว่า `soundspawn` ใน pgAdmin
+6. migrate ข้อมูล
 ```
 python manage.py makemigrations
 python manage.py migrate
 ```
 
-6. Run server
+7. Run server
 ```
 python manage.py runserver
 ```
