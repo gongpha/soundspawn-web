@@ -1,0 +1,17 @@
+<form method="post">
+	{% csrf_token %}
+	<div class="card mb-3">
+		<div class="card-header">Sign Up</div>
+		<div class="card-body">
+			{% if error %}
+			<div class="alert alert-danger" role="alert">
+				{{ error }}
+			</div>
+			{% endif %}
+			<div class="mb-3">
+				{{ form }}
+			</div>
+			<button type="submit" class="btn btn-danger">Sign Up</button>
+		</div>
+	</div>
+</form>
