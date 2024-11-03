@@ -1,1 +1,35 @@
-<h1>Create Track</h1>
+<div class="form-container" style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+    <form  method="post" enctype="multipart/form-data" style="background-color: #D8B9B2; padding: 40px; border-radius: 10px; width: 400px;">
+        <div style="margin-bottom: 20px;">
+            <label for="song-name" style="font-weight: bold; font-size: 18px;">Song name :</label>
+            <input type="text" name="songname" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 16px;">
+        </div>
+        <div style="margin-bottom: 20px; font-weight: bold; font-size: 18px;">Upload Your Files Here :</div>
+        
+        <div style="background-color: #7D2A26; color: white; width: 100%; height: 150px; display: flex; align-items: center; justify-content: center; border-radius: 10px; cursor: pointer; position: relative;">
+            <input type="file" name="file" style="opacity: 0; position: absolute; width: 100%; height: 100%; cursor: pointer;">
+            <span style="font-size: 36px; color: #FFFFFF; z-index: 1;">+</span>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <button type="submit" style="padding: 12px 25px; background-color: #7D2A26; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">Submit</button>
+        </div>
+    </form>
+</div>
+<style>
+    @keyframes float {
+        0%, 100% {
+            transform: translateY(0px);
+        }
+        50% {
+            transform: translateY(-10px);
+        }
+    }
+    .form-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        animation: float 3s ease-in-out infinite;
+    }
+</style>
