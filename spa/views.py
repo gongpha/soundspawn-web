@@ -9,22 +9,35 @@ from django.contrib.auth import authenticate, login
 
 from django.contrib.auth import get_user_model
 
-from .forms import LoginForm, SignUpForm
-from .models import Sound, Album
+from .forms import LoginForm, SignUpForm, EditProfileForm
+from .models import Sound, Album, Upload
+from .models import ProfilePictureMapping
+
+from django.templatetags.static import static
+
 # Create your views here.
 
 class HTMXView(View) :
     def html_name(self):
         return "index"
     
+    def pre_get(self, request):
+        return ""
+    
     def get(self, request, *args, **kwargs):
+        redirect_url = self.pre_get(request)
+        if redirect_url != "":
+            return redirect(redirect_url)
+
         if request.htmx:
             return render(request, f"{self.html_name()}.html", self.get_context())
         else :
             return render(request, f"{self.html_name()}_f.html", self.get_context())
         
     def get_context(self) -> dict:
-        return {}
+        return {
+            "profile_picture": get_profile_picture(self.request.user) if self.request.user.is_authenticated else static('images/none.png')
+        }
 
 class IndexView(HTMXView):
     pass
@@ -88,6 +101,16 @@ class SignupView(HTMXView):
         })
     
 #############
+
+def get_profile_picture(user):
+    if user is None :
+        return static('images/none.png')
+    
+    pro = ProfilePictureMapping.objects.filter(user=user).first()
+    if pro is None:
+        return static('images/none.png')
+    
+    return pro.upload.file.url
     
 class ProfileView(HTMXView) :
     def html_name(self):
@@ -100,17 +123,33 @@ class ProfileView(HTMXView) :
         user = self.get_user_from_request()
         if user is None:
             return {}
+        
+        eform = EditProfileForm()
+        # put data in the form
+        eform.fields['username'].initial = user.username
+        eform.fields['email'].initial = user.email
+
         return {
+            "profile_picture": get_profile_picture(user),
+            "profile_user": user,
+
             "sounds": Sound.objects.filter(user=user),
-            "albums": Album.objects.filter(user=user)
+            "albums": Album.objects.filter(user=user),
+
+            "edit_form": eform
         }
     
-class MeView(HTMXView) :
+class MeView(ProfileView) :
     def html_name(self):
         return "profile"
     
     def get_user_from_request(self):
         return self.request.user
+    
+    def pre_get(self, request):
+        if request.user.is_anonymous:
+            return 'login'
+        return ""
     
 #############
 
@@ -179,3 +218,32 @@ class SoundCreateView(HTMXView) :
     
     def get_context(self) -> dict:
         return {}
+    
+class EditProfileView(View) :
+    def post(self, request, *args, **kwargs):
+        if request.user.is_anonymous:
+            return redirect('login')
+        
+        # update user profile and upload a new profile picture
+        form = EditProfileForm(request.POST, request.FILES)
+        if form.is_valid():
+            user = request.user
+            user.username = form.cleaned_data['username']
+            user.email = form.cleaned_data['email']
+            user.save()
+            
+            new_pic = form.cleaned_data['new_pic']
+            print(form.cleaned_data)
+            print(new_pic)
+            if new_pic is not None:
+                # create a new upload
+                up = Upload.objects.create(user=user, file=new_pic)
+                # create a new profile picture mapping
+                p = ProfilePictureMapping.objects.create(user=user, upload=up)
+                print(p)
+            
+            return redirect('me')
+        
+        return render(request, 'profile_f.html', {
+            "edit_form": form
+        })

@@ -3,10 +3,13 @@
 	<div style="background-color: #FF7373; height: 300;">
 		<!-- big profile picture -->
 		<div class="text-white d-flex p-4 pt-5">
-			<img src="{% static 'images/none.png' %}" alt="Profile Picture" class="rounded-circle" style="width: 200px; height: 200px">
-			<div class="ms-5">
+			<img src="{{ profile_picture }}" alt="Profile Picture" class="rounded-circle" style="width: 200px; height: 200px">
+			<div class="ms-5" hx-target="#edit-profile-section">
 				<h1 class="bg-danger p-2 my-auto">{{user.username}}</h1>
-				<span>Joined: {{user.date_joined}}</span>
+				<div>Joined: {{user.date_joined}}</div>
+				{% if profile_user == user %}
+					<button class="btn btn-danger mt-2" data-bs-toggle="modal" data-bs-target="#edit-profile-modal">Edit Profile</button>
+				{% endif %}
 			</div>
 		</div>
 	</div>
@@ -83,6 +86,36 @@
 						</div>
 					{% endfor %}
 				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="edit-profile-modal" tabindex="-1" aria-labelledby="edit-profile-modal" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h1 class="modal-title fs-5" id="exampleModalLabel">Edit Profile</h1>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<form method="post" action="edit/" enctype="multipart/form-data">
+					{% csrf_token %}
+					{% if error %}
+					<div class="alert alert-danger" role="alert">
+						{{ error }}
+					</div>
+					{% endif %}
+					<div class="mb-3">
+						{{ edit_form }}
+					</div>
+
+					<div><div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+						<input type="submit" class="btn btn-danger" value="Save Changes">
+					</div></div>
+				</form>
 			</div>
 		</div>
 	</div>

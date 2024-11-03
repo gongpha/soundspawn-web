@@ -11,6 +11,10 @@ class Upload(models.Model): # S3
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+class ProfilePictureMapping(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    upload = models.OneToOneField(Upload, on_delete=models.CASCADE)
+
 class Sound(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -39,3 +43,4 @@ class History(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     sound = models.ForeignKey(Sound, on_delete=models.CASCADE)
     added_at = models.DateTimeField(auto_now_add=True)
+    

@@ -6,6 +6,10 @@ from django.urls import include
 from .views import IndexView, DiscoverView, LoginView, LogoutView, SignupView, MeView
 from .views import ProfileView, PlaylistView, AlbumView, SoundView
 from .views import PlaylistCreateView, AlbumCreateView, SoundCreateView
+from .views import EditProfileView
+
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('', IndexView.as_view(), name='index'),
@@ -24,4 +28,6 @@ urlpatterns = [
     path('playlist/<str:uuid>/', PlaylistView.as_view(), name='playlist'),
     path('album/<str:uuid>/', AlbumView.as_view(), name='album'),
     path('sound/<str:uuid>/', SoundView.as_view(), name='sound'),
-]
+
+    path('me/edit/', EditProfileView.as_view(), name='edit_profile'),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
