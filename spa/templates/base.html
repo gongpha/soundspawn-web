@@ -29,9 +29,9 @@
 			</div>
 			
 			<!-- Search Bar -->
-			<form class="d-flex me-5" action="" method="GET">
+			<form class="d-flex me-5">
 				<input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="q">
-				<button class="btn btn-outline-light" type="submit">Search</button>
+				<button class="btn btn-outline-light" type="submit" hx-get="/search/" hx-push-url="true" hx-include="[name='q']">Search</button>
 			</form>
 
 			{% if user.is_authenticated %}

@@ -1,0 +1,50 @@
+<div hx-target="#content">
+	<h1>Search Results : "{{ query }}"</h1>
+
+	{% if empty %}
+		<p>No results found</p>
+	{% endif %}
+
+	{% if sounds %}
+	<div class="row">
+		<h1>Tracks</h1>
+		{% for sound in sounds %}
+			<div class="col-4">
+				<a href="{% url 'sound' sound.id %}" hx-get="{% url 'sound' sound.id %}" hx-push-url="true">
+					<img src="{{ sound.get_cover }}" alt="sound Icon" style="width: 250px; height: 250px">
+					<p class="fs-4 fw-bold mt-2 text-decoration-none text-black">{{sound.name}}</p>
+				</a>
+			</div>
+		{% endfor %}
+	</div>
+	{% endif %}
+
+	{% if albums %}
+	<div class="row">
+		<h1>Albums</h1>
+		{% for album in albums %}
+			<div class="col-4">
+				<a href="{% url 'album' album.id %}" hx-get="{% url 'album' album.id %}" hx-push-url="true">
+					<img src="{{ album.get_cover }}" alt="Album Icon" style="width: 250px; height: 250px">
+					<p class="fs-4 fw-bold mt-2 text-decoration-none text-black">{{album.name}}</p>
+				</a>
+			</div>
+		{% endfor %}
+	</div>
+
+	{% endif %}
+
+	{% if users %}
+	<div class="row">
+		<h1>Users</h1>
+		{% for user in users %}
+			<div class="col-4">
+				<a href="{% url 'profile' user.user.username %}" hx-get="{% url 'profile' user.user.username %}" hx-push-url="true">
+					<img src="{{ user.profile_picture }}" alt="User Icon" style="width: 250px; height: 250px">
+					<p class="fs-4 fw-bold mt-2 text-decoration-none text-black">{{user.user.username}}</p>
+				</a>
+			</div>
+		{% endfor %}
+	</div>
+	{% endif %}
+</div>

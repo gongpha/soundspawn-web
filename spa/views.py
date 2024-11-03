@@ -351,3 +351,37 @@ class SoundDownloadStreamView(View) :
                 History.objects.create(user=request.user, sound=sound)
 
         return response
+
+class SearchView(HTMXView) :
+    def html_name(self):
+        return "search"
+    
+    def get_context(self, *args, **kwargs) -> dict:
+        # search sound matching the query
+        query = self.request.GET.get('q', '')
+        if query == '':
+            return redirect('index')
+        
+        sounds = Sound.objects.filter(name__icontains=query)
+
+        # serach user matching the query
+        users_obj = get_user_model().objects.filter(username__icontains=query)
+
+        users = []
+        for user in users_obj:
+            users.append({
+                'user': user,
+                'profile_picture': get_profile_picture(user)
+            })
+
+        # search album matching the query
+        albums = Album.objects.filter(name__icontains=query)
+
+        return {
+            'query': query,
+            'sounds': sounds,
+            'users': users,
+            'albums': albums,
+
+            'empty': len(sounds) == 0 and len(users) == 0 and len(albums) == 0
+        }

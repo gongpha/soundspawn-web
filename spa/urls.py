@@ -4,7 +4,7 @@ from django.urls import path
 from django.urls import include
 
 from .views import IndexView, DiscoverView, LoginView, LogoutView, SignupView, MeView
-from .views import ProfileView, PlaylistView, AlbumView, SoundView
+from .views import ProfileView, PlaylistView, AlbumView, SoundView, SearchView
 from .views import PlaylistCreateView, AlbumCreateView, SoundCreateView
 from .views import EditProfileView, UploadSoundView, SoundDownloadStreamView
 
@@ -34,4 +34,6 @@ urlpatterns = [
     path('me/edit/', EditProfileView.as_view(), name='edit_profile'),
     path('uploadsound/', UploadSoundView.as_view(), name='upload_sound'),
     
+    path('search/', SearchView.as_view(), name='search'),
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
