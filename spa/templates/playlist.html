@@ -1,14 +1,18 @@
-{% extends 'base.html' %}
-
-{% block content %}
-
 <div class="album-header" style="background-color: #F37A82; padding: 20px; text-align: center;">
+    {% if playlist %}
     <div style="display: flex; align-items: center; justify-content: flex-start;">
-        <div style="width: 150px; height: 150px; background-color: #C7EAE8; border-radius: 50%; margin-right: 20px; flex-shrink: 0;"></div>
+        <img src="{{ playlist.get_picture }}" alt="Album Icon" style="width: 150px; height: 150px; border-radius: 10%; margin-right: 20px; flex-shrink: 0;">
         <h1 style="font-size: 2.5em; color: white; margin: 0; font-family: 'Bebas Neue', sans-serif;">{{playlist.name}}</h1>
     </div>
+    {% if playlist.user == user %}
+        <button class="btn btn-danger mt-2" data-bs-toggle="modal" data-bs-target="#edit-playlist-modal">Edit</button>
+    {% endif %}
+    {% else %}
+        <h1 style="font-size: 2.5em; color: white; margin: 0; font-family: 'Bebas Neue', sans-serif;">This Playlist is private</h1>
+    {% endif %}
 </div>
 
+{% if playlist %}
 <div class="album-table" style="padding: 20px; font-family: 'Signika', sans-serif;">
     <table style="width: 100%; border-collapse: collapse;">
         <thead>
@@ -43,4 +47,34 @@
         </tbody>
     </table>
 </div>
-{% endblock content %}
+
+<!-- Edit Modal -->
+<div class="modal fade" id="edit-playlist-modal" tabindex="-1" aria-labelledby="edit-playlist-modal" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h1 class="modal-title fs-5" id="exampleModalLabel">Edit Playlist</h1>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<form method="post" action="" enctype="multipart/form-data">
+					{% csrf_token %}
+					{% if error %}
+					<div class="alert alert-danger" role="alert">
+						{{ error }}
+					</div>
+					{% endif %}
+					<div class="mb-3">
+						{{ edit_form }}
+					</div>
+
+					<div><div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+						<input type="submit" class="btn btn-danger" value="Save Changes">
+					</div></div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+{% endif %}

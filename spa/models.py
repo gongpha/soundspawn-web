@@ -38,6 +38,12 @@ class Album(models.Model):
     sounds = models.ManyToManyField(Sound)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    picture = models.OneToOneField(Upload, on_delete=models.CASCADE, null=True)
+
+    def get_picture(self) :
+        if self.picture is None :
+            return static('images/none.png')
+        return self.picture.file.url
 
 class Playlist(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -46,6 +52,12 @@ class Playlist(models.Model):
     sounds = models.ManyToManyField(Sound)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    picture = models.OneToOneField(Upload, on_delete=models.CASCADE, null=True)
+
+    def get_picture(self) :
+        if self.picture is None :
+            return static('images/none.png')
+        return self.picture.file.url
 
 class History(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)

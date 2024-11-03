@@ -17,7 +17,9 @@
 	<div class="mt-5">
 		<ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
 			<li class="nav-item" role="presentation">
-			  <button class="nav-link active" id="pills-home-tab" data-bs-toggle="pill" data-bs-target="#pills-home" type="button" role="tab" aria-controls="pills-home" aria-selected="true">Playlists</button>
+			  <button class="nav-link active" id="pills-home-tab" data-bs-toggle="pill" data-bs-target="#pills-home" type="button" role="tab" aria-controls="pills-home" aria-selected="true">Playlists
+				<span class="badge bg-danger">{{playlist_count}}</span>
+			  </button>
 			</li>
 			<li class="nav-item" role="presentation">
 			  <button class="nav-link" id="pills-profile-tab" data-bs-toggle="pill" data-bs-target="#pills-profile" type="button" role="tab" aria-controls="pills-profile" aria-selected="false">Tracks
@@ -44,7 +46,7 @@
 					{% for playlist in playlists %}
 						<div class="col-4">
 							<a href="{% url 'playlist' playlist.id %}" hx-get="{% url 'playlist' playlist.id %}" hx-push-url="true">
-								<img src="{% static 'images/none.png' %}" alt="Playlist Icon" style="width: 250px; height: 250px">
+								<img src="{{ playlist.get_picture }}" alt="Playlist Icon" style="width: 250px; height: 250px">
 								<p class="fs-4 fw-bold mt-2 text-decoration-none text-black">{{playlist.name}}</p>
 							</a>
 						</div>
@@ -84,7 +86,7 @@
 					{% for album in albums %}
 						<div class="col-4">
 							<a href="{% url 'album' album.id %}" hx-get="{% url 'album' album.id %}" hx-push-url="true">
-								<img src="{% static 'images/none.png' %}" alt="Album Icon" style="width: 250px; height: 250px">
+								<img src="{{ album.get_picture }}" alt="Album Icon" style="width: 250px; height: 250px">
 								<p class="fs-4 fw-bold mt-2 text-decoration-none text-black">{{album.name}}</p>
 							</a>
 						</div>

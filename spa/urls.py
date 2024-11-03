@@ -7,6 +7,7 @@ from .views import IndexView, DiscoverView, LoginView, LogoutView, SignupView, M
 from .views import ProfileView, PlaylistView, AlbumView, SoundView, SearchView
 from .views import PlaylistCreateView, AlbumCreateView, SoundCreateView
 from .views import EditProfileView, UploadSoundView, SoundDownloadStreamView
+from .views import NewAlbumView, NewPlaylistView
 
 from django.conf import settings
 from django.conf.urls.static import static
@@ -33,6 +34,8 @@ urlpatterns = [
 
     path('me/edit/', EditProfileView.as_view(), name='edit_profile'),
     path('uploadsound/', UploadSoundView.as_view(), name='upload_sound'),
+    path('newalbum/', NewAlbumView.as_view(), name='new_album'),
+    path('newplaylist/', NewPlaylistView.as_view(), name='new_playlist'),
     
     path('search/', SearchView.as_view(), name='search'),
 

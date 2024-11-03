@@ -32,3 +32,10 @@ class SoundUploadForm(BootstrapForm):
 
 class SoundEditForm(BootstrapForm):
     name = forms.CharField(label='Name', max_length=100)
+
+class PlaylistCreateEditForm(BootstrapForm):
+    name = forms.CharField(label='Name', max_length=100)
+    pic = forms.ImageField(label='New Picture', required=False)
+class AlbumCreateEditForm(BootstrapForm):
+    name = forms.CharField(label='Name', max_length=100)
+    pic = forms.ImageField(label='New Picture', required=False)

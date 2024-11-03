@@ -11,9 +11,10 @@ from django.contrib.auth import get_user_model
 
 from .forms import LoginForm, SignUpForm, EditProfileForm
 from .forms import SoundUploadForm, SoundEditForm
+from .forms import PlaylistCreateEditForm, AlbumCreateEditForm
 from .models import Sound, Album, Upload
 from .models import ProfilePictureMapping
-from .models import History
+from .models import History, Playlist
 
 from django.http import FileResponse
 
@@ -48,7 +49,7 @@ class HTMXView(View) :
 class IndexView(HTMXView):
     def get_context(self, *args, **kwargs) -> dict:
         if self.request.user.is_authenticated:
-            histories = History.objects.filter(user=self.request.user).order_by('-id')[:5]
+            histories = History.objects.filter(user=self.request.user).order_by('-id')[:9]
             return {
                 "histories": histories
             }
@@ -152,6 +153,7 @@ class ProfileView(HTMXView) :
 
         sounds = Sound.objects.filter(user=user)
         albums = Album.objects.filter(user=user)
+        playlists = Playlist.objects.filter(user=user)
 
         return {
             "profile_picture": get_profile_picture(user),
@@ -159,11 +161,13 @@ class ProfileView(HTMXView) :
 
             "sounds": sounds,
             "albums": albums,
+            "playlists": playlists,
 
             "edit_form": eform,
 
             "sound_count": len(sounds),
-            "album_count": len(albums)
+            "album_count": len(albums),
+            "playlist_count": len(playlists)
             
         }
     
@@ -185,31 +189,107 @@ class PlaylistView(HTMXView) :
     def html_name(self):
         return "playlist"
     
-    def get_playlist_from_request(self):
-        return self.request.GET.get('uuid', None)
-    
     def get_context(self, *args, **kwargs) -> dict:
-        playlist = self.get_playlist_from_request()
-        if playlist is None:
+        uuid = kwargs.get('uuid', None)
+        if uuid is None :
             return {}
+        playlist = Playlist.objects.get(id=uuid)
+        if playlist is None :
+            return {}
+        
+        # PLAYLIST IS PRIVATE
+        if playlist.user != self.request.user:
+            return {}
+        
+        eform = PlaylistCreateEditForm()
+        # put data in the form
+        eform.fields['name'].initial = playlist.name
+
         return {
-            "playlist": playlist
+            "playlist": playlist,
+            "edit_form": eform
         }
+    
+    def post(self, request, *args, **kwargs):
+        if request.user.is_anonymous:
+            return redirect('login')
+
+        playlist = kwargs.get('uuid', None)
+        if playlist is None:
+            return redirect('index')
+        
+        playlist = Playlist.objects.get(id=playlist)
+        if playlist is None:
+            return redirect('index')
+        
+        if request.user != playlist.user:
+            return redirect('index')
+        
+        form = PlaylistCreateEditForm(request.POST, request.FILES)
+        if form.is_valid():
+            playlist.name = form.cleaned_data['name']
+
+            # pic upload
+            pic = form.cleaned_data['pic']
+            if pic :
+                upload = Upload.objects.create(user=request.user, file=pic)
+                playlist.picture = upload
+            playlist.save()
+            
+            return redirect('playlist', uuid=playlist.id)
+        
+        return redirect('playlist', uuid=playlist.id)
     
 class AlbumView(HTMXView) :
     def html_name(self):
         return "album"
     
-    def get_album_from_request(self):
-        return self.request.GET.get('uuid', None)
-    
     def get_context(self, *args, **kwargs) -> dict:
-        album = self.get_album_from_request()
-        if album is None:
+        uuid = kwargs.get('uuid', None)
+        if uuid is None :
             return {}
+        album = Album.objects.get(id=uuid)
+        if album is None :
+            return {}
+        
+        eform = AlbumCreateEditForm()
+        # put data in the form
+        eform.fields['name'].initial = album.name
+
         return {
-            "album": album
+            "album": album,
+            "edit_form": eform
         }
+    
+    def post(self, request, *args, **kwargs):
+        if request.user.is_anonymous:
+            return redirect('login')
+
+        album = kwargs.get('uuid', None)
+        if album is None:
+            return redirect('index')
+        
+        album = Album.objects.get(id=album)
+        if album is None:
+            return redirect('index')
+        
+        if request.user != album.user:
+            return redirect('index')
+        
+        form = AlbumCreateEditForm(request.POST, request.FILES)
+        if form.is_valid():
+            album.name = form.cleaned_data['name']
+
+            # pic upload
+            pic = form.cleaned_data['pic']
+            if pic :
+                upload = Upload.objects.create(user=request.user, file=pic)
+                album.picture = upload
+            album.save()
+            
+            return redirect('album', uuid=album.id)
+        
+        return redirect('album', uuid=album.id)
     
 class SoundView(HTMXView) :
     def html_name(self):
@@ -264,14 +344,18 @@ class PlaylistCreateView(HTMXView) :
         return "playlist_create"
     
     def get_context(self) -> dict:
-        return {}
+        return {
+            'form': PlaylistCreateEditForm()
+        }
     
 class AlbumCreateView(HTMXView) :
     def html_name(self):
         return "album_create"
     
     def get_context(self) -> dict:
-        return {}
+        return {
+            'form': AlbumCreateEditForm()
+        }
     
 class SoundCreateView(HTMXView) :
     def html_name(self):
@@ -299,14 +383,11 @@ class EditProfileView(View) :
             user.save()
             
             new_pic = form.cleaned_data['new_pic']
-            print(form.cleaned_data)
-            print(new_pic)
             if new_pic is not None:
                 # create a new upload
                 up = Upload.objects.create(user=user, file=new_pic)
                 # create a new profile picture mapping
                 p = ProfilePictureMapping.objects.create(user=user, upload=up)
-                print(p)
             
             return redirect('me')
         
@@ -337,6 +418,56 @@ class UploadSoundView(View) :
             'form': form
         })
     
+class NewAlbumView(View) :
+    def get(self, request, *args, **kwargs):
+        return redirect('album_create')
+    
+    def post(self, request, *args, **kwargs):
+        if request.user.is_anonymous:
+            return redirect('login')
+        
+        form = AlbumCreateEditForm(request.POST, request.FILES)
+        if form.is_valid():
+            # create a new album
+            name = form.cleaned_data['name']
+            pic = form.cleaned_data['pic']
+
+            if pic :
+                upload = Upload.objects.create(user=request.user, file=pic)
+                album = Album.objects.create(user=request.user, name=name, picture=upload)
+            else :
+                album = Album.objects.create(user=request.user, name=name)
+            return redirect('album', uuid=album.id)
+        
+        return render(request, 'album_create_f.html', {
+            'form': form
+        })
+    
+class NewPlaylistView(View) :
+    def get(self, request, *args, **kwargs):
+        return redirect('playlist_create')
+    
+    def post(self, request, *args, **kwargs):
+        if request.user.is_anonymous:
+            return redirect('login')
+        
+        form = PlaylistCreateEditForm(request.POST, request.FILES)
+        if form.is_valid():
+            # create a new playlist
+            name = form.cleaned_data['name']
+            pic = form.cleaned_data['pic']
+
+            if pic :
+                upload = Upload.objects.create(user=request.user, file=pic)
+                playlist = Playlist.objects.create(user=request.user, name=name, picture=upload)
+            else :
+                playlist = Playlist.objects.create(user=request.user, name=name)
+            return redirect('playlist', uuid=playlist.id)
+        
+        return render(request, 'playlist_create_f.html', {
+            'form': form
+        })
+    
 class SoundDownloadStreamView(View) :
     def get(self, request, *args, **kwargs):
         sound = kwargs.get('uuid', None)
@@ -352,10 +483,10 @@ class SoundDownloadStreamView(View) :
 
         # add to history
         if request.user.is_authenticated :
-            # check if the last history is the same
-            last = History.objects.filter(user=request.user).last()
-            if last is None or last.sound != sound:
-                History.objects.create(user=request.user, sound=sound)
+            # delete all history that is the same
+            History.objects.filter(user=request.user, sound=sound).delete()
+
+            History.objects.create(user=request.user, sound=sound)
 
         return response
 
