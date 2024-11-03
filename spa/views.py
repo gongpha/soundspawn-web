@@ -150,14 +150,21 @@ class ProfileView(HTMXView) :
         eform.fields['username'].initial = user.username
         eform.fields['email'].initial = user.email
 
+        sounds = Sound.objects.filter(user=user)
+        albums = Album.objects.filter(user=user)
+
         return {
             "profile_picture": get_profile_picture(user),
             "profile_user": user,
 
-            "sounds": Sound.objects.filter(user=user),
-            "albums": Album.objects.filter(user=user),
+            "sounds": sounds,
+            "albums": albums,
 
-            "edit_form": eform
+            "edit_form": eform,
+
+            "sound_count": len(sounds),
+            "album_count": len(albums)
+            
         }
     
 class MeView(ProfileView) :
