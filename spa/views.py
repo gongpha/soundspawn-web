@@ -386,8 +386,14 @@ class EditProfileView(View) :
             if new_pic is not None:
                 # create a new upload
                 up = Upload.objects.create(user=user, file=new_pic)
-                # create a new profile picture mapping
-                p = ProfilePictureMapping.objects.create(user=user, upload=up)
+
+                # assign the new profile picture
+                existing = ProfilePictureMapping.objects.filter(user=user).first()
+                if existing is not None:
+                    existing.upload = up
+                    existing.save()
+                else:
+                    ProfilePictureMapping.objects.create(user=user, upload=up)
             
             return redirect('me')
         
