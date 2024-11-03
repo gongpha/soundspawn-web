@@ -25,11 +25,8 @@
 		<div class="p-2 ps-5 pe-5 text-white d-flex sticky-top" style="background-color: #631919" hx-target="#content">
 			<a href="{% url 'index' %}" hx-get="{% url 'index' %}" hx-push-url="true" class="fs-5 my-auto me-4 text-decoration-none text-white" style="font-family: 'Fredoka', sans-serif; font-weight: 800;">SOUND SPAWN</a>
 
-			<ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0 me-auto">
-				<li class="nav-item">
-					<a href="{% url 'discover' %}" hx-get="{% url 'discover' %}" hx-push-url="true" class="nav-link text-white">Discover</a>
-				</li>
-			</ul>
+			<div class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0 me-auto">
+			</div>
 			
 			<!-- Search Bar -->
 			<form class="d-flex me-5" action="" method="GET">
@@ -39,7 +36,7 @@
 
 			{% if user.is_authenticated %}
 				<a href="{% url 'me' %}" hx-get="{% url 'me' %}" hx-push-url="true">
-					<img src="{{ profile_picture }}" alt="Profile Icon" class="rounded-circle" style="width: 50px; height: 50px;">
+					<img src="{{ profile_picture_me }}" alt="Profile Icon" class="rounded-circle" style="width: 50px; height: 50px;">
 				</a>
 				<a href="{% url 'logout' %}" class="btn btn-outline-light ms-2">Logout</a>
 			{% else %}
@@ -51,10 +48,11 @@
 		
 		<div class="container">
 			<div class="row h-100">
-				<div class="col px-0" id="content">
+				<div class="col px-0" id="content" hx-history-elt>
 					{% block content %}
 					{% endblock %}
 				</div>
+				<!--
 				{% if user.is_authenticated %}
 				<div class="col-3" style="background-color: #EFEFEF;">
 					<h1 class="mt-5 fw-bold">History</h1>
@@ -69,16 +67,26 @@
 					{% endif %}
 				</div>
 				{% endif %}
+			-->
 			</div>
 		</div>
 		
 
 		<!-- Player -->
-		<div class="p-2 ps-5 pe-5 text-white sticky-bottom" style="background-color: #631919; display: none;" hx-target="#content" id="player">
-			<form class="d-flex" action="" method="GET">
+		<div class="p-2 ps-5 pe-5 text-white fixed-bottom" style="background-color: #631919; display: none;" hx-target="#content" id="player">
+			<div class="d-flex w-25">
 				<!-- Album Icon-->
-				<img src="{% static 'images/none.png' %}" alt="Album Icon" class="rounded-circle" style="width: 50px; height: 50px;">
-			</form>
+				<img id="song-cover" src="{% static 'images/none.png' %}" alt="Album Icon" class="rounded-circle" style="width: 50px; height: 50px;">
+				<div id="song-info" hx-target="#content">
+					<a href="" hx-get="" hx-push-url="true" id="song-name-link">
+						<h1 class="fs-5 my-auto ms-3 text-white text-decoration-none fw-bold" id="song-name">@@@</h1>
+					</a>
+					
+					<a href="" hx-get="" hx-push-url="true" id="song-artist-link">
+						<p class="fs-6 my-auto ms-3 text-white text-decoration-none" id="song-artist">@@@</p>
+					</a>
+				</div>
+			</div>
 
 			<div class="w-100 mx-5">
 				<div class="d-flex">

@@ -5,8 +5,8 @@
 		<div class="text-white d-flex p-4 pt-5">
 			<img src="{{ profile_picture }}" alt="Profile Picture" class="rounded-circle" style="width: 200px; height: 200px">
 			<div class="ms-5" hx-target="#edit-profile-section">
-				<h1 class="bg-danger p-2 my-auto">{{user.username}}</h1>
-				<div>Joined: {{user.date_joined}}</div>
+				<h1 class="bg-danger p-2 my-auto">{{profile_user.username}}</h1>
+				<div>Joined: {{profile_user.date_joined}}</div>
 				{% if profile_user == user %}
 					<button class="btn btn-danger mt-2" data-bs-toggle="modal" data-bs-target="#edit-profile-modal">Edit Profile</button>
 				{% endif %}
@@ -57,11 +57,11 @@
 							<p class="fs-4 fw-bold mt-2 text-decoration-none text-black">{{track.name}}</p>
 						</a>
 					</div>
-					{% for track in tracks %}
+					{% for sound in sounds %}
 						<div class="col-4">
-							<a href="{% url 'track' track.id %}" hx-get="{% url 'track' track.id %}" hx-push-url="true">
-								<img src="{% static 'images/none.png' %}" alt="Track Icon" style="width: 250px; height: 250px">
-								<p class="fs-4 fw-bold mt-2 text-decoration-none text-black">{{track.name}}</p>
+							<a href="{% url 'sound' sound.id %}" hx-get="{% url 'sound' sound.id %}" hx-push-url="true">
+								<img src="{{ sound.get_cover }}" alt="sound Icon" style="width: 250px; height: 250px">
+								<p class="fs-4 fw-bold mt-2 text-decoration-none text-black">{{sound.name}}</p>
 							</a>
 						</div>
 					{% endfor %}

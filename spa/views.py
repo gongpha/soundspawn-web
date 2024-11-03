@@ -10,8 +10,12 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth import get_user_model
 
 from .forms import LoginForm, SignUpForm, EditProfileForm
+from .forms import SoundUploadForm, SoundEditForm
 from .models import Sound, Album, Upload
 from .models import ProfilePictureMapping
+from .models import History
+
+from django.http import FileResponse
 
 from django.templatetags.static import static
 
@@ -28,19 +32,27 @@ class HTMXView(View) :
         redirect_url = self.pre_get(request)
         if redirect_url != "":
             return redirect(redirect_url)
-
-        if request.htmx:
-            return render(request, f"{self.html_name()}.html", self.get_context())
-        else :
-            return render(request, f"{self.html_name()}_f.html", self.get_context())
         
-    def get_context(self) -> dict:
-        return {
-            "profile_picture": get_profile_picture(self.request.user) if self.request.user.is_authenticated else static('images/none.png')
+        default_context = self.get_context(*args, **kwargs) | {
+            "profile_picture_me": get_profile_picture(self.request.user) if self.request.user.is_authenticated else static('images/none.png')
         }
 
+        if request.htmx:
+            return render(request, f"{self.html_name()}.html", default_context)
+        else :
+            return render(request, f"{self.html_name()}_f.html", default_context)
+        
+    def get_context(self, *args, **kwargs) -> dict:
+        return {}
+
 class IndexView(HTMXView):
-    pass
+    def get_context(self, *args, **kwargs) -> dict:
+        if self.request.user.is_authenticated:
+            histories = History.objects.filter(user=self.request.user).order_by('-id')[:5]
+            return {
+                "histories": histories
+            }
+        return {}
 
 class DiscoverView(HTMXView):
     def html_name(self):
@@ -56,7 +68,7 @@ class LoginView(HTMXView):
     def html_name(self):
         return "signin"
     
-    def get_context(self) -> dict:
+    def get_context(self, *args, **kwargs) -> dict:
         return {
             "form": LoginForm()
         }
@@ -81,7 +93,7 @@ class SignupView(HTMXView):
     def html_name(self):
         return "signup"
     
-    def get_context(self) -> dict:
+    def get_context(self, *args, **kwargs) -> dict:
         return {
             "form": SignUpForm()
         }
@@ -116,11 +128,20 @@ class ProfileView(HTMXView) :
     def html_name(self):
         return "profile"
     
-    def get_user_from_request(self):
-        return self.request.GET.get('username', None)
+    def get_user_from_request(self, *args, **kwargs):
+        user = kwargs.get('username', None)
+        if user is None:
+            return None
+        
+        user = get_user_model().objects.filter(username=user).first()
+        if user is None:
+            return None
+        
+        return user
     
-    def get_context(self) -> dict:
-        user = self.get_user_from_request()
+    def get_context(self, *args, **kwargs) -> dict:
+        user = self.get_user_from_request(*args, **kwargs)
+
         if user is None:
             return {}
         
@@ -143,7 +164,7 @@ class MeView(ProfileView) :
     def html_name(self):
         return "profile"
     
-    def get_user_from_request(self):
+    def get_user_from_request(self, *args, **kwargs):
         return self.request.user
     
     def pre_get(self, request):
@@ -160,7 +181,7 @@ class PlaylistView(HTMXView) :
     def get_playlist_from_request(self):
         return self.request.GET.get('uuid', None)
     
-    def get_context(self) -> dict:
+    def get_context(self, *args, **kwargs) -> dict:
         playlist = self.get_playlist_from_request()
         if playlist is None:
             return {}
@@ -175,7 +196,7 @@ class AlbumView(HTMXView) :
     def get_album_from_request(self):
         return self.request.GET.get('uuid', None)
     
-    def get_context(self) -> dict:
+    def get_context(self, *args, **kwargs) -> dict:
         album = self.get_album_from_request()
         if album is None:
             return {}
@@ -187,16 +208,49 @@ class SoundView(HTMXView) :
     def html_name(self):
         return "sound"
     
-    def get_sound_from_request(self):
-        return self.request.GET.get('uuid', None)
-    
-    def get_context(self) -> dict:
-        sound = self.get_sound_from_request()
+    def get_context(self, *args, **kwargs) -> dict:
+        sound = kwargs.get('uuid', None)
         if sound is None:
             return {}
+        
+        sound = Sound.objects.get(id=sound)
+
+        if sound is None:
+            return {}
+        
+        eform = SoundEditForm()
+        # put data in the form
+        eform.fields['name'].initial = sound.name
+
         return {
-            "sound": sound
+            "sound": sound,
+            "profile_picture_uploader": get_profile_picture(sound.user),
+            "edit_form": eform
         }
+    
+    def post(self, request, *args, **kwargs):
+        if request.user.is_anonymous:
+            return redirect('login')
+
+        sound = kwargs.get('uuid', None)
+        if sound is None:
+            return redirect('index')
+        
+        sound = Sound.objects.get(id=sound)
+        if sound is None:
+            return redirect('index')
+        
+        if request.user != sound.user:
+            return redirect('index')
+        
+        form = SoundEditForm(request.POST)
+        if form.is_valid():
+            sound.name = form.cleaned_data['name']
+            sound.save()
+            
+            return redirect('sound', uuid=sound.id)
+        
+        return redirect('sound', uuid=sound.id)
     
 class PlaylistCreateView(HTMXView) :
     def html_name(self):
@@ -216,10 +270,15 @@ class SoundCreateView(HTMXView) :
     def html_name(self):
         return "sound_create"
     
-    def get_context(self) -> dict:
-        return {}
+    def get_context(self, *args, **kwargs) -> dict:
+        return {
+            'form': SoundUploadForm()
+        }
     
 class EditProfileView(View) :
+    def get(self, request, *args, **kwargs):
+        return redirect('me')
+    
     def post(self, request, *args, **kwargs):
         if request.user.is_anonymous:
             return redirect('login')
@@ -247,3 +306,48 @@ class EditProfileView(View) :
         return render(request, 'profile_f.html', {
             "edit_form": form
         })
+    
+class UploadSoundView(View) :
+    def get(self, request, *args, **kwargs):
+        return redirect('sound_create')
+
+    def post(self, request, *args, **kwargs):
+        if request.user.is_anonymous:
+            return redirect('login')
+        
+        form = SoundUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            # create a new sound
+            name = form.cleaned_data['name']
+            sound = form.cleaned_data['sound']
+
+            upload = Upload.objects.create(user=request.user, file=sound)
+
+            s = Sound.objects.create(user=request.user, name=name, upload=upload)
+            return redirect('sound', uuid=s.id)
+        
+        return render(request, 'sound_create_f.html', {
+            'form': form
+        })
+    
+class SoundDownloadStreamView(View) :
+    def get(self, request, *args, **kwargs):
+        sound = kwargs.get('uuid', None)
+        if sound is None:
+            return redirect('index')
+        
+        sound = Sound.objects.get(id=sound)
+        if sound is None:
+            return redirect('index')
+        
+        response = FileResponse(sound.upload.file, as_attachment=True)
+        response['Content-Disposition'] = f'attachment; filename="{sound.name}"'
+
+        # add to history
+        if request.user.is_authenticated :
+            # check if the last history is the same
+            last = History.objects.filter(user=request.user).last()
+            if last is None or last.sound != sound:
+                History.objects.create(user=request.user, sound=sound)
+
+        return response

@@ -6,7 +6,7 @@ from django.urls import include
 from .views import IndexView, DiscoverView, LoginView, LogoutView, SignupView, MeView
 from .views import ProfileView, PlaylistView, AlbumView, SoundView
 from .views import PlaylistCreateView, AlbumCreateView, SoundCreateView
-from .views import EditProfileView
+from .views import EditProfileView, UploadSoundView, SoundDownloadStreamView
 
 from django.conf import settings
 from django.conf.urls.static import static
@@ -29,5 +29,9 @@ urlpatterns = [
     path('album/<str:uuid>/', AlbumView.as_view(), name='album'),
     path('sound/<str:uuid>/', SoundView.as_view(), name='sound'),
 
+    path('soundf/<str:uuid>/', SoundDownloadStreamView.as_view(), name='soundf'),
+
     path('me/edit/', EditProfileView.as_view(), name='edit_profile'),
+    path('uploadsound/', UploadSoundView.as_view(), name='upload_sound'),
+    
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

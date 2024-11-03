@@ -1,0 +1,53 @@
+{% load static %}
+<div>
+	<div style="background-color: #FF7373; height: 300;">
+		<!-- big profile picture -->
+		<div class="text-white d-flex p-4 pt-5">
+			<img src="{{ sound.get_cover }}" alt="Profile Picture" class="rounded" style="width: 200px; height: 200px">
+			<div class="ms-5" hx-target="#content">
+				<h1 class="bg-danger p-2 my-auto">{{sound.name}}</h1>
+				<div>
+					Uploaded by <a class="text-white fw-bold" href="{% url 'profile' sound.user.username %}" hx-get="{% url 'profile' sound.user.username %}" hx-push-url="true">{{ sound.user.username }}</a>
+					on {{sound.created_at}}
+				</div>
+				<button
+					onclick="playMusic('/soundf/{{ sound.id }}/', '{{ sound.get_cover }}', '{{ sound.name }}', '{{ sound.user.username }}', '/sound/{{ sound.id }}/', '/profile/{{ sound.user.username }}/')"
+					class="btn btn-success mt-2"
+				><i class="bi bi-play-fill"></i>Play</button>
+				{% if sound.user == user %}
+					<button class="btn btn-danger mt-2" data-bs-toggle="modal" data-bs-target="#edit-song-modal">Edit</button>
+				{% endif %}
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="edit-song-modal" tabindex="-1" aria-labelledby="edit-song-modal" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h1 class="modal-title fs-5" id="exampleModalLabel">Edit Track</h1>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<form method="post" action="" enctype="multipart/form-data">
+					{% csrf_token %}
+					{% if error %}
+					<div class="alert alert-danger" role="alert">
+						{{ error }}
+					</div>
+					{% endif %}
+					<div class="mb-3">
+						{{ edit_form }}
+					</div>
+
+					<div><div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+						<input type="submit" class="btn btn-danger" value="Save Changes">
+					</div></div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>

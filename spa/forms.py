@@ -24,3 +24,11 @@ class EditProfileForm(BootstrapForm):
     email = forms.EmailField(label='Email', max_length=100)
 
     new_pic = forms.ImageField(label='New Profile Picture', required=False)
+
+class SoundUploadForm(BootstrapForm):
+    # filter only audio file
+    name = forms.CharField(label='Name', max_length=100)
+    sound = forms.FileField(label='Sound', widget=forms.FileInput(attrs={'accept': 'audio/*'}))
+
+class SoundEditForm(BootstrapForm):
+    name = forms.CharField(label='Name', max_length=100)

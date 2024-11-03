@@ -4,6 +4,8 @@ from django.conf import settings
 
 import uuid
 
+from django.templatetags.static import static
+
 class Upload(models.Model): # S3
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -22,6 +24,12 @@ class Sound(models.Model):
     upload = models.OneToOneField(Upload, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def get_cover(self) :
+        pm = ProfilePictureMapping.objects.filter(user=self.user).first()
+        if pm is None :
+            return static('images/none.png')
+        return pm.upload.file.url
 
 class Album(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

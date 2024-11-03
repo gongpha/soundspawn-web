@@ -36,7 +36,7 @@ function showPlayer() {
 	const playButton = document.querySelector('#play-button');
 	playButton.addEventListener('click', () => {
 		if (music.paused) {
-			playMusic("");
+			playMusic("", "", "", "", "", "");
 		} else {
 			pauseMusic();
 		}
@@ -72,7 +72,7 @@ function formatTime(time) {
 	return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
 }
 
-function playMusic(url) {
+function playMusic(url, cover, name, artist, songUrl, artistUrl) {
 	showPlayer();
 
 	if (url != "") {
@@ -82,8 +82,31 @@ function playMusic(url) {
 	music.play();
 
 
-	const playIcon = document.querySelector('#play-icon');
-	playIcon.className = 'bi bi-pause-fill';
+	if (cover != "") {
+		const playIcon = document.querySelector('#play-icon');
+		playIcon.className = 'bi bi-pause-fill';
+
+		// set
+		const songCover = document.querySelector('#song-cover');
+		const songName = document.querySelector('#song-name');
+		const songArtist = document.querySelector('#song-artist');
+		const songNameLink = document.querySelector('#song-name-link');
+		const songArtistLink = document.querySelector('#song-artist-link');
+
+		songCover.src = cover;
+		songName.innerText = name;
+		songArtist.innerText = artist;
+
+		// a href
+		songNameLink.setAttribute('href', songUrl);
+		songNameLink.setAttribute('hx-get', songUrl);
+		songArtistLink.setAttribute('href', artistUrl);
+		songArtistLink.setAttribute('hx-get', artistUrl);
+
+		const songInfo = document.querySelector('#song-info');
+
+		htmx.process(songInfo);
+	}
 }
 
 function pauseMusic() {

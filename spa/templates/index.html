@@ -1,7 +1,28 @@
-<h1>Welcome!</h1>
+{% load static %}
 
-<button class="btn btn-danger" onclick="playMusic('/static/test_songs/ast.mp3')">Play Music</button>
-<button class="btn btn-danger" onclick="playMusic('/static/test_songs/tele.mp3')">Play Music2</button>
+{% if user.is_authenticated %}
 
-{% lorem 23 p %}
+<h1>Last Played</h1>
 
+{% if histories %}
+<div class="row">
+{% for history in histories %}
+	<div class="col-4" hx-target="#content">
+		<a href="{% url 'sound' history.sound.id %}" hx-get="{% url 'sound' history.sound.id %}" hx-push-url="true">
+			<img src="{{ history.sound.get_cover }}" alt="sound Icon" style="width: 250px; height: 250px">
+			<p class="fs-4 fw-bold mt-2 text-decoration-none text-black">{{history.sound.name}}</p>
+		</a>
+	</div>
+{% endfor %}
+</div>
+{% else %}
+
+<p>No history</p>
+
+{% endif %}
+
+{% else %}
+
+<h1>Welcome to the Music App</h1>
+
+{% endif %}
