@@ -1,0 +1,20 @@
+{% for s in sounds %}
+<tr hx-target="#content">
+	<td><img id="song-cover" src="{{ s.get_cover }}" alt="Album Icon" class="rounded-2" style="width: 50px; height: 50px;"></td>
+	<td>{{ s.name }}</td>
+	<td>{{ s.user.username }}</td>
+	<td>
+		<!-- add button -->
+
+		{% if is_playlist %}
+		<form class="d-flex me-5">
+			<button class="btn btn-danger" data-bs-dismiss="modal" type="submit" hx-put="{% url 'playlist_track' object.id s.id %}" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>Add</button>
+		</form>
+		{% else %}
+		<form class="d-flex me-5">
+			<button class="btn btn-danger" data-bs-dismiss="modal" type="submit" hx-put="{% url 'album_track' object.id s.id %}" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>Add</button>
+		</form>
+		{% endif %}
+	</td>
+</tr>
+{% endfor %}

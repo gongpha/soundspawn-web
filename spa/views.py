@@ -16,6 +16,8 @@ from .models import Sound, Album, Upload
 from .models import ProfilePictureMapping
 from .models import History, Playlist, Comment
 
+from django.http import HttpResponse
+
 from django.http import FileResponse
 
 from django.templatetags.static import static
@@ -185,30 +187,47 @@ class MeView(ProfileView) :
     
 #############
 
+def _get_album_or_playlist_context(request, is_playlist, *args, **kwargs):
+    uuid = kwargs.get('uuid', None)
+    if uuid is None :
+        return {}
+    try :
+        if is_playlist :
+            obj = Playlist.objects.get(id=uuid)
+        else :
+            obj = Album.objects.get(id=uuid)
+    except :
+        return {}
+        
+    if obj is None :
+        return {}
+    
+    if is_playlist :
+        # PLAYLIST IS PRIVATE
+        if obj.user != request.user:
+            return {}
+    
+        eform = PlaylistCreateEditForm()
+    else :
+        eform = AlbumCreateEditForm()
+    # put data in the form
+    eform.fields['name'].initial = obj.name
+
+    sounds = obj.sounds.all()
+
+    return {
+        ("playlist" if is_playlist else "album"): obj,
+        "edit_form": eform,
+        "tracks": sounds,
+        "is_playlist": is_playlist
+    }
+
 class PlaylistView(HTMXView) :
     def html_name(self):
         return "playlist"
     
     def get_context(self, *args, **kwargs) -> dict:
-        uuid = kwargs.get('uuid', None)
-        if uuid is None :
-            return {}
-        playlist = Playlist.objects.get(id=uuid)
-        if playlist is None :
-            return {}
-        
-        # PLAYLIST IS PRIVATE
-        if playlist.user != self.request.user:
-            return {}
-        
-        eform = PlaylistCreateEditForm()
-        # put data in the form
-        eform.fields['name'].initial = playlist.name
-
-        return {
-            "playlist": playlist,
-            "edit_form": eform
-        }
+        return _get_album_or_playlist_context(self.request, True, *args, **kwargs)
     
     def post(self, request, *args, **kwargs):
         if request.user.is_anonymous:
@@ -245,21 +264,7 @@ class AlbumView(HTMXView) :
         return "album"
     
     def get_context(self, *args, **kwargs) -> dict:
-        uuid = kwargs.get('uuid', None)
-        if uuid is None :
-            return {}
-        album = Album.objects.get(id=uuid)
-        if album is None :
-            return {}
-        
-        eform = AlbumCreateEditForm()
-        # put data in the form
-        eform.fields['name'].initial = album.name
-
-        return {
-            "album": album,
-            "edit_form": eform
-        }
+        return _get_album_or_playlist_context(self.request, False, *args, **kwargs)
     
     def post(self, request, *args, **kwargs):
         if request.user.is_anonymous:
@@ -300,7 +305,10 @@ class SoundView(HTMXView) :
         if sound is None:
             return {}
         
-        sound = Sound.objects.get(id=sound)
+        try :
+            sound = Sound.objects.get(id=sound)
+        except Sound.DoesNotExist:
+            return {}
 
         if sound is None:
             return {}
@@ -328,8 +336,9 @@ class SoundView(HTMXView) :
         if sound is None:
             return redirect('index')
         
-        sound = Sound.objects.get(id=sound)
-        if sound is None:
+        try :
+            sound = Sound.objects.get(id=sound)
+        except Sound.DoesNotExist:
             return redirect('index')
         
         if request.user != sound.user:
@@ -485,8 +494,9 @@ class SoundDownloadStreamView(View) :
         if sound is None:
             return redirect('index')
         
-        sound = Sound.objects.get(id=sound)
-        if sound is None:
+        try :
+            sound = Sound.objects.get(id=sound)
+        except Sound.DoesNotExist:
             return redirect('index')
         
         response = FileResponse(sound.upload.file, as_attachment=True)
@@ -535,6 +545,47 @@ class SearchView(HTMXView) :
             'empty': len(sounds) == 0 and len(users) == 0 and len(albums) == 0
         }
     
+class SearchAddTracksView(View) :
+    def get(self, request, *args, **kwargs):
+        if not request.htmx:
+            return redirect('index')
+        
+        query = request.GET.get('q', '')
+        is_playlist = int(request.GET.get('p', 0))
+        
+        if is_playlist :
+            sounds = Sound.objects.filter(name__icontains=query)
+        else :
+            # must be from the user and not added to the album
+            sounds = Sound.objects.filter(name__icontains=query, user=request.user).filter(album__isnull=True)
+
+        if len(sounds) == 0 :
+            return HttpResponse("No sounds found")
+        
+        obj = kwargs.get('obj_uuid', None)
+        if obj is None:
+            return render(request, 'add_track_search.html', {
+                'sounds': sounds,
+                "is_playlist": is_playlist
+            })
+        
+        try :
+            if is_playlist :
+                obj = Playlist.objects.get(id=obj)
+            else :
+                obj = Album.objects.get(id=obj)
+        except :
+            return HttpResponse("Object not found")
+
+        if obj is None:
+            return HttpResponse("Object not found")
+
+        return render(request, 'add_track_search.html', {
+            'sounds': sounds,
+            'object': obj,
+            "is_playlist": is_playlist
+        })
+    
 class PostCommentView(HTMXView) :
     def post(self, request, *args, **kwargs):
         if request.user.is_anonymous:
@@ -544,8 +595,9 @@ class PostCommentView(HTMXView) :
         if sound is None:
             return redirect('index')
         
-        sound = Sound.objects.get(id=sound)
-        if sound is None:
+        try :
+            sound = Sound.objects.get(id=sound)
+        except Sound.DoesNotExist:
             return redirect('index')
         
         comment = request.POST.get('comment', '')
@@ -560,3 +612,130 @@ class PostCommentView(HTMXView) :
             'comments': Comment.objects.filter(sound=sound).order_by('-created_at'),
             'sound': sound
         })
+    
+class PlaylistTrackView(View) :
+    def get(self, request, *args, **kwargs):
+        return redirect('index')
+    
+    def model_class(self):
+        return Playlist
+    def model_name(self):
+        return "playlist"
+    def is_playlist(self):
+        return True
+    
+    def put(self, request, *args, **kwargs):
+        if request.user.is_anonymous:
+            return redirect('login')
+        
+        mclass = self.model_class()
+        
+        playlist = kwargs.get('uuid', None)
+        if playlist is None:
+            return redirect('index')
+        
+        try :
+            playlist = mclass.objects.get(id=playlist)
+        except :
+            return redirect('index')
+        
+        sound = kwargs.get('sound_uuid', None)
+        if sound is None:
+            return redirect('index')
+        
+        try :
+            sound = Sound.objects.get(id=sound)
+        except Sound.DoesNotExist:
+            return redirect('index')
+        
+        if not self.is_playlist() :
+            # must not inside any album before
+            album = Album.objects.filter(sounds=sound).first()
+            if album is not None :
+                return redirect('index')
+        
+        playlist.sounds.add(sound)
+
+        return render(request, self.model_name() + '.html',
+            _get_album_or_playlist_context(request, self.is_playlist(), uuid=playlist.id)              
+        )
+    
+    def delete(self, request, *args, **kwargs):
+        if request.user.is_anonymous:
+            return redirect('login')
+        
+        mclass = self.model_class()
+        
+        playlist = kwargs.get('uuid', None)
+        if playlist is None:
+            return redirect('index')
+            
+        try :
+            playlist = mclass.objects.get(id=playlist)
+        except :
+            return redirect('index')
+        
+        sound = kwargs.get('sound_uuid', None)
+        if sound is None:
+            return redirect('index')
+        
+        try :
+            sound = Sound.objects.get(id=sound)
+        except Sound.DoesNotExist:
+            return redirect('index')
+        
+        playlist.sounds.remove(sound)
+
+        return render(request, self.model_name() + '.html',
+            _get_album_or_playlist_context(request, self.is_playlist(), uuid=playlist.id)              
+        )
+    
+# just the same as PlaylistTrackView
+class AlbumTrackView(PlaylistTrackView) :
+    def model_class(self):
+        return Album
+    def model_name(self):
+        return "album"
+    def is_playlist(self):
+        return False
+    
+import json
+    
+class PlaylistViewSoundsJSON(View) :
+    def is_playlist(self):
+        return True
+    
+    def get(self, request, *args, **kwargs):
+        obj = kwargs.get('uuid', None)
+        if obj is None:
+            return redirect('index')
+        
+        try :
+            if self.is_playlist() :
+                obj = Playlist.objects.get(id=obj)
+            else :
+                obj = Album.objects.get(id=obj)
+        except :
+            return redirect('index')
+
+        if obj is None:
+            return HttpResponse("[]", content_type='application/json')
+        
+        sounds = obj.sounds.all()
+        
+        # return as JSON
+        json_string = json.dumps([{
+            'media_url': '/soundf/' + str(sound.id) + '/',
+            'uuid': str(sound.id),
+            'name': sound.name,
+            'cover_url': sound.get_cover(),
+            'artist': sound.user.username,
+            'name_link': '/sound/' + str(sound.id) + '/',
+            'artist_link': '/profile/' + sound.user.username + '/',
+        } for sound in sounds])
+
+        return HttpResponse(json_string, content_type='application/json')
+    
+class AlbumViewSoundsJSON(PlaylistViewSoundsJSON) :
+    def is_playlist(self):
+        return False

@@ -1,4 +1,7 @@
 {% load static %}
+
+{% if profile_user %}
+
 <div>
 	<div style="background-color: #FF7373; height: 300;">
 		<!-- big profile picture -->
@@ -16,13 +19,19 @@
 
 	<div class="mt-5">
 		<ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+			{% if profile_user == user %}
 			<li class="nav-item" role="presentation">
 			  <button class="nav-link active" id="pills-home-tab" data-bs-toggle="pill" data-bs-target="#pills-home" type="button" role="tab" aria-controls="pills-home" aria-selected="true">Playlists
 				<span class="badge bg-danger">{{playlist_count}}</span>
 			  </button>
 			</li>
+			{% endif %}
 			<li class="nav-item" role="presentation">
+				{% if profile_user == user %}
 			  <button class="nav-link" id="pills-profile-tab" data-bs-toggle="pill" data-bs-target="#pills-profile" type="button" role="tab" aria-controls="pills-profile" aria-selected="false">Tracks
+				{% else %}
+			  <button class="nav-link active" id="pills-profile-tab" data-bs-toggle="pill" data-bs-target="#pills-profile" type="button" role="tab" aria-controls="pills-profile" aria-selected="true">Tracks
+				{% endif %}
 				<span class="badge bg-danger">{{sound_count}}</span>
 			  </button>
 			</li>
@@ -33,6 +42,7 @@
 			</li>
 		</ul>
 		<div class="tab-content" id="pills-tabContent" hx-target="#content">
+			{% if profile_user == user %}
 			<div class="tab-pane fade show active" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab" tabindex="0">
 				<div class="row">
 					<div class="col-4">
@@ -53,8 +63,14 @@
 					{% endfor %}
 				</div>
 			</div>
+			{% endif %}
+			{% if profile_user == user %}
 			<div class="tab-pane fade" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab" tabindex="0">
+			{% else %}
+			<div class="tab-pane fade show active" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab" tabindex="0">
+			{% endif %}
 				<div class="row">
+					{% if profile_user == user %}
 					<div class="col-4">
 						<a href="{% url 'sound_create' %}" hx-get="{% url 'sound_create' %}" hx-push-url="true">
 							<div class="text-bg-secondary d-flex justify-content-center" style="width: 250px; height: 250px">
@@ -63,6 +79,7 @@
 							<p class="fs-4 fw-bold mt-2 text-decoration-none text-black">{{track.name}}</p>
 						</a>
 					</div>
+					{% endif %}
 					{% for sound in sounds %}
 						<div class="col-4">
 							<a href="{% url 'sound' sound.id %}" hx-get="{% url 'sound' sound.id %}" hx-push-url="true">
@@ -75,6 +92,7 @@
 			</div>
 			<div class="tab-pane fade" id="pills-contact" role="tabpanel" aria-labelledby="pills-contact-tab" tabindex="0">
 				<div class="row">
+					{% if profile_user == user %}
 					<div class="col-4">
 						<a href="{% url 'album_create' %}" hx-get="{% url 'album_create' %}" hx-push-url="true">
 							<div class="text-bg-secondary d-flex justify-content-center" style="width: 250px; height: 250px">
@@ -83,6 +101,7 @@
 							<p class="fs-4 fw-bold mt-2 text-decoration-none text-black">{{album.name}}</p>
 						</a>
 					</div>
+					{% endif %}
 					{% for album in albums %}
 						<div class="col-4">
 							<a href="{% url 'album' album.id %}" hx-get="{% url 'album' album.id %}" hx-push-url="true">
@@ -126,3 +145,11 @@
 		</div>
 	</div>
 </div>
+
+<script>
+document.title = "{{ profile_user.username }} - SOUND SPAWN";    
+</script>
+
+{% else %}
+	<h1>Profile is not found</h1>
+{% endif %}

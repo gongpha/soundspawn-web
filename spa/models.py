@@ -26,6 +26,11 @@ class Sound(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def get_cover(self) :
+        # if it has beed added to an album, return the album cover
+        album = Album.objects.filter(sounds=self).first()
+        if album is not None :
+            return album.get_picture()
+
         pm = ProfilePictureMapping.objects.filter(user=self.user).first()
         if pm is None :
             return static('images/none.png')

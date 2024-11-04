@@ -1,4 +1,7 @@
 {% load static %}
+
+{% if sound %}
+
 <div>
 	<div style="background-color: #FF7373; height: 300;">
 		<!-- big profile picture -->
@@ -69,3 +72,13 @@
 		</div>
 	</div>
 </div>
+
+<script>
+document.title = "{{ sound.name }} - SOUND SPAWN";    
+</script>
+
+{% else %}
+
+<h1>Track is not found</h1>
+
+{% endif %}

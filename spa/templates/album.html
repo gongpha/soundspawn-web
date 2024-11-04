@@ -1,47 +1,26 @@
 <div class="album-header" style="background-color: #F37A82; padding: 20px; text-align: center;">
-    <div style="display: flex; align-items: center; justify-content: flex-start;">
-        <img src="{{ album.get_picture }}" alt="Album Icon" style="width: 150px; height: 150px; border-radius: 10%; margin-right: 20px; flex-shrink: 0;">
-        <h1 style="font-size: 2.5em; color: white; margin: 0; font-family: 'Bebas Neue', sans-serif;">{{album.name}}</h1>
-    </div>
-    {% if album.user == user %}
-        <button class="btn btn-danger mt-2" data-bs-toggle="modal" data-bs-target="#edit-album-modal">Edit</button>
-    {% endif %}
+	{% if album %}
+	<div style="display: flex; align-items: center; justify-content: flex-start;">
+		<img src="{{ album.get_picture }}" alt="Album Icon" style="width: 150px; height: 150px; border-radius: 10%; margin-right: 20px; flex-shrink: 0;">
+		<h1 style="font-size: 2.5em; color: white; margin: 0; font-family: 'Bebas Neue', sans-serif;">{{album.name}}</h1>
+	</div>
+
+	<button
+		onclick="playMusicList('{{ album.id }}', false)"
+		class="btn btn-success mt-2"
+	><i class="bi bi-play-fill"></i>Play</button>
+
+	{% if album.user == user %}
+		<button class="btn btn-danger mt-2" data-bs-toggle="modal" data-bs-target="#edit-album-modal">Edit</button>
+		<button class="btn btn-danger mt-2" data-bs-toggle="modal" data-bs-target="#add-song-modal">Add Song</button>
+	{% endif %}
+	{% else %}
+		<h1 style="font-size: 2.5em; color: white; margin: 0; font-family: 'Bebas Neue', sans-serif;">This Album is private</h1>
+	{% endif %}
 </div>
 
-<div class="album-table" style="padding: 20px; font-family: 'Signika', sans-serif;">
-    <table style="width: 100%; border-collapse: collapse;">
-        <thead>
-            <tr style="border-bottom: 2px solid #ddd;">
-                <th style="text-align: left; padding: 10px 0; font-weight: 600; font-size: 1.1em; border-bottom: 2px solid #C7EAE8;">Title</th>
-                <th style="text-align: left; padding: 10px 0; font-weight: 600; font-size: 1.1em; border-bottom: 2px solid #C7EAE8;">Date Added</th>
-                <th style="text-align: left; padding: 10px 0; font-weight: 600; font-size: 1.1em; border-bottom: 2px solid #C7EAE8;">Duration</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% if allsound %}
-                {% for i in allsound %}
-                <tr style="border-bottom: 1px solid #eee;">
-                    <td style="padding: 15px 0;">
-                        <div style="display: flex; align-items: center;">
-                            <div style="width: 50px; height: 50px; background-color: #F37A82; margin-right: 10px; border-radius: 5px;"></div>
-                            <div>
-                                <p style="margin: 0; font-weight: 500;">{{ i.name }}</p>
-                            </div>
-                        </div>
-                    </td>
-                    <td style="padding: 15px 0;">{{ i.created_at }}</td>
-                    <td style="padding: 15px 0;">3:45</td>
-                </tr>
-                {% endfor %}
-            {% else %}
-                <tr>
-                    <td colspan="3" style="padding: 15px 0; text-align: center;">No Sound in this Album</td>
-                </tr>
-            {% endif %}
-
-        </tbody>
-    </table>
-</div>
+{% if album %}
+{% include "track_list.html" %}
 
 <!-- Edit Modal -->
 <div class="modal fade" id="edit-album-modal" tabindex="-1" aria-labelledby="edit-album-modal" aria-hidden="true">
@@ -72,3 +51,35 @@
 		</div>
 	</div>
 </div>
+
+<!-- Add Song Modal -->
+<div class="modal fade" id="add-song-modal" tabindex="-1" aria-labelledby="add-song-modal" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h1 class="modal-title fs-5" id="exampleModalLabel">Add Song</h1>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<!-- search music -->
+				<input class="form-control" type="search" 
+					name="q" placeholder="Begin Typing To Search Tracks..."
+					hx-get="/searchaddtracks/{{ album.id }}?p=0" 
+					hx-trigger="input changed delay:500ms, search" 
+					hx-target="#search-results" 
+					hx-indicator=".htmx-indicator"
+					hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+				>
+				<span class="htmx-indicator"> 
+					Searching... 
+				</span>
+				<table class="table">
+					<tbody id="search-results"></tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+<script>
+document.title = "{{ album.name }} - SOUND SPAWN";    
+</script>
+{% endif %}

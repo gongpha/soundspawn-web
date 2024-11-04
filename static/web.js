@@ -12,6 +12,11 @@ music.addEventListener('timeupdate', () => {
   updateTimeTexts();
 });
 
+music.addEventListener("ended", () => {
+	// check queue
+	advanceQueue();
+});
+
 
 function showPlayer() {
 	if (showing) {
@@ -72,6 +77,12 @@ function formatTime(time) {
 	return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
 }
 
+
+
+
+
+let queue = [];
+
 function playMusic(url, cover, name, artist, songUrl, artistUrl) {
 	showPlayer();
 
@@ -107,6 +118,42 @@ function playMusic(url, cover, name, artist, songUrl, artistUrl) {
 
 		htmx.process(songInfo);
 	}
+}
+
+function playMusicInList(soundList) {
+	queue = soundList;
+	advanceQueue();
+}
+
+function advanceQueue() {
+	if (queue.length == 0) {
+		return;
+	}
+
+	const sound = queue.shift();
+	playMusic(sound.media_url, sound.cover_url, sound.name, sound.artist, sound.name_link, sound.artist_link);
+}
+
+function playMusicList(listID, isPlaylist) {
+	showPlayer();
+
+	// get sounds list
+	// request by xml http request
+	const xhr = new XMLHttpRequest();
+	if (isPlaylist)
+		xhr.open("GET", `/playlist/${listID}/sounds`, true);
+	else
+		xhr.open("GET", `/album/${listID}/sounds`, true);
+
+	xhr.setRequestHeader("Content-Type", "application/json");
+	xhr.onreadystatechange = function() {
+		if (xhr.readyState == 4 && xhr.status == 200) {
+			const response = JSON.parse(xhr.responseText);
+			playMusicInList(response);
+		}
+	}
+
+	xhr.send();
 }
 
 function pauseMusic() {
