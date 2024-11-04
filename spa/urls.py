@@ -7,7 +7,7 @@ from .views import IndexView, DiscoverView, LoginView, LogoutView, SignupView, M
 from .views import ProfileView, PlaylistView, AlbumView, SoundView, SearchView
 from .views import PlaylistCreateView, AlbumCreateView, SoundCreateView
 from .views import EditProfileView, UploadSoundView, SoundDownloadStreamView
-from .views import NewAlbumView, NewPlaylistView
+from .views import NewAlbumView, NewPlaylistView, PostCommentView
 
 from django.conf import settings
 from django.conf.urls.static import static
@@ -38,5 +38,7 @@ urlpatterns = [
     path('newplaylist/', NewPlaylistView.as_view(), name='new_playlist'),
     
     path('search/', SearchView.as_view(), name='search'),
+
+    path('comment/<str:sound_uuid>/', PostCommentView.as_view(), name='post_comment'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

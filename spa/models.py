@@ -64,3 +64,9 @@ class History(models.Model):
     sound = models.ForeignKey(Sound, on_delete=models.CASCADE)
     added_at = models.DateTimeField(auto_now_add=True)
     
+class Comment(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    sound = models.ForeignKey(Sound, on_delete=models.CASCADE)
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)

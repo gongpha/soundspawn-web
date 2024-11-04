@@ -22,6 +22,24 @@
 	</div>
 </div>
 
+<!-- Comment Section -->
+<div>
+	<h1>Comments</h1>
+	<div id="comments">
+		{% include "comment_section.html" %}
+	</div>
+	{% if user.is_authenticated %}
+		<form method="post" action="{% url 'post_comment' sound.id %}" hx-post="{% url 'post_comment' sound.id %}" hx-target="#comments">
+			{% csrf_token %}
+			<div class="mb-3">
+				<label for="comment" class="form-label">Comment</label>
+				<textarea class="form-control" id="comment" name="comment" rows="3"></textarea>
+			</div>
+			<button type="submit" class="btn btn-danger">Submit</button>
+		</form>
+	{% endif %}
+</div>
+
 <!-- Edit Modal -->
 <div class="modal fade" id="edit-song-modal" tabindex="-1" aria-labelledby="edit-song-modal" aria-hidden="true">
 	<div class="modal-dialog">

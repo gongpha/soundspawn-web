@@ -1,0 +1,23 @@
+{% if comments %}
+{% for comment in comments %}
+	<div class="card mb-2">
+		<div class="card-body">
+			<div class="d-flex justify-content-between">
+				<div hx-target="#content">
+					<a href="{% url 'profile' comment.user.username %}" hx-get="{% url 'profile' comment.user.username %}" hx-push-url="true">{{ comment.user.username }}</a>
+					{% if sound.user == comment.user %}
+					<div class="badge bg-info">Uploader</div>
+					{% endif %}
+					<span>{{ comment.created_at }}</span>
+				</div>
+				<!--{% if comment.user == user %}
+					<button class="btn btn-danger" onclick="deleteComment({{ comment.id }})">Delete</button>
+				{% endif %}-->
+			</div>
+			<p>{{ comment.text }}</p>
+		</div>
+	</div>
+{% endfor %}
+{% else %}
+	<p>No comments</p>
+{% endif %}

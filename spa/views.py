@@ -14,7 +14,7 @@ from .forms import SoundUploadForm, SoundEditForm
 from .forms import PlaylistCreateEditForm, AlbumCreateEditForm
 from .models import Sound, Album, Upload
 from .models import ProfilePictureMapping
-from .models import History, Playlist
+from .models import History, Playlist, Comment
 
 from django.http import FileResponse
 
@@ -309,10 +309,15 @@ class SoundView(HTMXView) :
         # put data in the form
         eform.fields['name'].initial = sound.name
 
+        # comments
+        comments = Comment.objects.filter(sound=sound).order_by('-created_at')
+
         return {
             "sound": sound,
             "profile_picture_uploader": get_profile_picture(sound.user),
-            "edit_form": eform
+            "edit_form": eform,
+
+            "comments": comments
         }
     
     def post(self, request, *args, **kwargs):
@@ -529,3 +534,29 @@ class SearchView(HTMXView) :
 
             'empty': len(sounds) == 0 and len(users) == 0 and len(albums) == 0
         }
+    
+class PostCommentView(HTMXView) :
+    def post(self, request, *args, **kwargs):
+        if request.user.is_anonymous:
+            return redirect('login')
+        
+        sound = kwargs.get('sound_uuid', None)
+        if sound is None:
+            return redirect('index')
+        
+        sound = Sound.objects.get(id=sound)
+        if sound is None:
+            return redirect('index')
+        
+        comment = request.POST.get('comment', '')
+        if comment == '':
+            return render(request, f"comment_section.html", {
+                'comments': Comment.objects.filter(sound=sound).order_by('-created_at'),
+                'sound': sound
+            })
+        
+        Comment.objects.create(user=request.user, sound=sound, text=comment)
+        return render(request, f"comment_section.html", {
+            'comments': Comment.objects.filter(sound=sound).order_by('-created_at'),
+            'sound': sound
+        })
