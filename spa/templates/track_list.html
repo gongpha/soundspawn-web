@@ -26,16 +26,19 @@
 						</a>
 					</td>
 					<td>
-						{% if track.user == user %}
-							{% if is_playlist %}
-							<form class="d-flex me-5">
-								<button class="btn btn-danger" type="submit" hx-delete="{% url 'playlist_track' playlist.id track.id %}" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>Remove</button>
-							</form>
-							{% else %}
-							<form class="d-flex me-5">
-								<button class="btn btn-danger" type="submit" hx-delete="{% url 'album_track' album.id track.id %}" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>Remove</button>
-							</form>
-							{% endif %}
+						
+						{% if is_playlist %}
+						{% if playlist.user == user %}
+						<form class="d-flex me-5">
+							<button class="btn btn-danger" type="submit" hx-delete="{% url 'playlist_track' playlist.id track.id %}" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>Remove</button>
+						</form>
+						{% endif %}
+						{% else %}
+						{% if album.user == user %}
+						<form class="d-flex me-5">
+							<button class="btn btn-danger" type="submit" hx-delete="{% url 'album_track' album.id track.id %}" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>Remove</button>
+						</form>
+						{% endif %}
 						{% endif %}
 					</td>
 				</tr>
