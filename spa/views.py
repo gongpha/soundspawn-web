@@ -552,12 +552,16 @@ class SearchAddTracksView(View) :
         
         query = request.GET.get('q', '')
         is_playlist = int(request.GET.get('p', 0))
-        
-        if is_playlist :
-            sounds = Sound.objects.filter(name__icontains=query)
+
+        if query == '':
+            # set empty list
+            sounds = []
         else :
-            # must be from the user and not added to the album
-            sounds = Sound.objects.filter(name__icontains=query, user=request.user).filter(album__isnull=True)
+            if is_playlist :
+                sounds = Sound.objects.filter(name__icontains=query)
+            else :
+                # must be from the user and not added to the album
+                sounds = Sound.objects.filter(name__icontains=query, user=request.user).filter(album__isnull=True)
 
         if len(sounds) == 0 :
             return HttpResponse("No sounds found")
