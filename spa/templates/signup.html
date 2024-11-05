@@ -1,7 +1,9 @@
+<div class="mt-4">
+
 <form method="post">
 	{% csrf_token %}
 	<div class="card mb-3">
-		<div class="card-header">Sign Up</div>
+		<div class="card-header fw-bold text-white" style="background-color: #631919">Sign Up</div>
 		<div class="card-body">
 			{% if error %}
 			<div class="alert alert-danger" role="alert">
@@ -19,3 +21,5 @@
 <script>
 document.title = "Sign Up - SOUND SPAWN";    
 </script>
+
+</div>

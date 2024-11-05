@@ -1,8 +1,14 @@
 {% load static %}
-
+<div class="mt-4">
 {% if user.is_authenticated %}
 
-<h1>Last Played</h1>
+<!-- Welcome Back text with gradient background -->
+<div class="text-white p-4 rounded-2" style="background-color: #631919">
+	<h1 class="fw-bold">Welcome Back, {{ user.username }}</h1>
+	<p class="fs-4">You can listen to your favorite music here.</p>
+</div>
+
+<h1 class="fw-bold mt-4">Last Played</h1>
 
 {% if histories %}
 <div class="row">
@@ -23,6 +29,20 @@
 
 {% else %}
 
-<h1>Welcome to the Music App</h1>
+<!-- promotional text of our app Soundspawn-->
 
+<div class="position-absolute w-100 h-100" style="left:0;top:0;">
+	<img class="w-100 rounded-3" style="filter: brightness(30%);" src="{% static 'images/cover.jpeg' %}" alt="Soundspawn Cover">
+	<!-- center text -->
+	<div class="position-absolute top-50 start-50 translate-middle text-white">
+		<h1 class="fw-bold text-center">Discover Your Next Favorite Song, Anytime, Anywhere — Dive into the Soundtrack of Your Life.</h1>
+		<p class="fs-4 text-center">SOUND SPAWN is a music streaming service that allows you to listen to music for free. You can listen to any music you want, anytime you want, and anywhere you want. You can also create your own playlist or create your own album.</p>
+		<!-- two buttons -->
+		<div class="d-flex justify-content-center mt-4">
+			<a href="{% url 'signup' %}" class="btn btn-danger btn-lg" style="box-shadow: 0 0 30px var(--box-shadow-color); --box-shadow-color: #dc3545;">Sign up for free</a>
+		</div>
+	</div>
+</div>
 {% endif %}
+
+</div>
