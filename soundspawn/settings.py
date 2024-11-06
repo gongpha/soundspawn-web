@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-m8vdz=aw@51=ba0t^0@&+pi_s7c^^w&r1y)p$yvz)ltm!tay&c
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['ec2-35-153-172-119.compute-1.amazonaws.com']
 
 
 # Application definition
@@ -37,7 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
+    'storages',
     'django_htmx',
 
     'spa',
@@ -125,6 +125,20 @@ USE_I18N = True
 
 USE_TZ = True
 
+STORAGES = {
+
+    'default': {
+        "BACKEND" : "storages.backends.s3boto3.S3Boto3Storage"
+    },
+
+     'staticfiles': {
+        "BACKEND" : "storages.backends.s3boto3.S3Boto3Storage"
+    }
+
+}
+
+AWS_STORAGE_BUCKET_NAME = 'soundspawnbucket'
+AWS_S3_REGION_NAME = 'us-east-1'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
